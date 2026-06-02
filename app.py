@@ -221,8 +221,11 @@ if not os.getenv("VERCEL") and not os.getenv("RENDER"):
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "secret123")
 
-# MongoDB connection
-client = MongoClient(os.getenv("MONGO_URI"))
+# MongoDB connection - clean up any accidental newlines or spaces from Render copy-pasting
+raw_mongo_uri = os.getenv("MONGO_URI")
+if raw_mongo_uri:
+    raw_mongo_uri = raw_mongo_uri.strip().replace("\n", "").replace("\r", "").replace(" ", "")
+client = MongoClient(raw_mongo_uri)
 db = client.expense_tracker
 users_collection = db.users
 expenses_collection = db.expenses
