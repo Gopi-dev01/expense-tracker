@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo" style="display: flex; align-items: center; gap: 5px;"><img src="{{ url_for('static', filename='images/logo.png', v='10') }}" alt="Logo" style="height: 55px; width: 55px; object-fit: contain; margin-right: -16px; transform: translateY(-6px);"><span>Expense Tracker</span></div>
+</nav>
+
+<!-- LOGOUT CONTAINER -->
+<div class="logout-container">
+    <div class="logout-card">
+        <h2>You have been logged out</h2>
+        <p>Thank you for using Expense Tracker</p>
+
+        <div class="logout-actions">
+            <a href="{{ url_for('login') }}" class="btn yellow">Login Again</a>
+            <a href="{{ url_for('home') }}" class="btn white">Go to Home</a>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

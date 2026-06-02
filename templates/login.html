@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="messageModal" class="modal-overlay show">
+      <div class="custom-modal" style="padding: 25px;">
+        {% for category, message in messages %}
+          <p class="alert {{ category }}" style="margin-bottom: 0;">{{ message }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
+
+<nav class="navbar">
+    <div class="logo" style="display: flex; align-items: center; gap: 5px;"><img src="{{ url_for('static', filename='images/logo.png', v='10') }}" alt="Logo" style="height: 55px; width: 55px; object-fit: contain; margin-right: -16px; transform: translateY(-6px);"><span>Expense Tracker</span></div>
+    <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/signup">Signup</a></li>
+    </ul>
+</nav>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Login</h2>
+
+        <form method="POST" action="/login" onsubmit="return validateLoginForm()">
+            <input type="email" name="email" placeholder="Email Address" required oninput="validateEmail(this)">
+            <div class="password-container">
+                <input type="password" name="password" placeholder="Password" required>
+                <i class="eye-icon" onclick="togglePassword(this)">&#128065;</i>
+            </div>
+
+            <button type="submit" class="btn-primary full-btn">
+                Login
+            </button>
+        </form>
+
+        <p class="auth-link">
+            Don’t have an account?
+            <a href="/signup">Signup</a>
+        </p>
+        <p class="auth-link">
+            Forgot your password?
+            <a href="/forgot-password">Reset Password</a>
+        </p>    </div>
+</div>
+
+<script>
+
+
+    function closeMessageModal() {
+        document.getElementById('messageModal').classList.remove('show');
+    }
+
+    function togglePassword(icon) {
+        const input = icon.previousElementSibling;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.textContent = input.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function validateEmail(input) {
+        const value = input.value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            input.setCustomValidity('Please enter a valid email address.');
+            return;
+        }
+        const domain = value.split('@')[1];
+        if (domain !== 'gmail.com' && !domain.endsWith('.in')) {
+            input.setCustomValidity('Email must be from gmail.com or end with .in');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+
+    function validateLoginForm() {
+        const email = document.querySelector('input[name="email"]');
+        validateEmail(email);
+        return email.checkValidity();
+    }
+</script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

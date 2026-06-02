@@ -1,0 +1,21 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Local environment variables and secrets
+.env
+
+# Application logs
+*.log
+logo_copy_log.txt
+
+# OS-specific files
+.DS_Store
+Thumbs.db

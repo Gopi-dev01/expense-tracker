@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .edit-profile-wrapper {
+            max-width: 700px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border: 3px solid var(--primary-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .edit-profile-wrapper {
+            background: #1e1e1e;
+            border-color: #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .edit-profile-header {
+            background: var(--primary-light);
+            padding: 25px 30px;
+            border-bottom: 3px solid var(--primary-color);
+            text-align: left;
+        }
+
+        body.dark-mode .edit-profile-header {
+            background: #2d2d2d;
+            border-bottom-color: #444;
+        }
+
+        .edit-profile-header h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        body.dark-mode .edit-profile-header h2 {
+            color: var(--primary-color);
+        }
+
+        .edit-profile-body {
+            padding: 35px 30px;
+        }
+
+        .edit-profile-form {
+            display: grid;
+            grid-template-columns: 1.2fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .edit-profile-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Avatar Upload Section */
+        .avatar-upload-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+        }
+
+        .avatar-preview-container {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            border: 4px solid var(--primary-color);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body.dark-mode .avatar-preview-container {
+            background: #2d2d2d;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .avatar-preview-container svg {
+            width: 70px;
+            height: 70px;
+        }
+
+        .avatar-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-input-label {
+            background: var(--primary-color);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .upload-input-label:hover {
+            background: var(--primary-hover);
+            transform: scale(1.03);
+        }
+
+        /* Form Controls Section */
+        .form-fields-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            text-align: left;
+        }
+
+        .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-control-group label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        body.dark-mode .form-control-group label {
+            color: #ccc;
+        }
+
+        .form-control-group input,
+        .form-control-group textarea {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 15px;
+            background: #ffffff;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        body.dark-mode .form-control-group input,
+        body.dark-mode .form-control-group textarea {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #ffffff;
+        }
+
+        .form-control-group input:focus,
+        .form-control-group textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px var(--primary-shadow);
+        }
+
+        .form-actions-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        body.dark-mode .form-actions-row {
+            border-top-color: #444;
+        }
+    </style>
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="messageModal" class="modal-overlay show">
+      <div class="custom-modal">
+        <h3>Notification</h3>
+        {% for category, message in messages %}
+          <p class="alert {{ category }}">{{ message }}</p>
+        {% endfor %}
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="closeMessageModal()">OK</button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo" style="display: flex; align-items: center; gap: 5px;"><img src="{{ url_for('static', filename='images/logo.png', v='10') }}" alt="Logo" style="height: 55px; width: 55px; object-fit: contain; margin-right: -16px; transform: translateY(-6px);"><span>Expense Tracker</span></div>
+    <div class="nav-right-container">
+        <a href="/user-dashboard" class="mobile-user-link" aria-label="User Dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+        </a>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/add-expense">Add Expense</a></li>
+        <li><a href="/manage-expense">Manage Expense</a></li>
+        <li><a href="/expense-report">Expense Report</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li class="active-user nav-user-item">
+            <a href="/user-dashboard" class="user-nav-link" aria-label="User Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container" style="background: none; box-shadow: none; padding: 0;">
+    <div class="edit-profile-wrapper">
+        <div class="edit-profile-header">
+            <h2>✏️ Edit Profile</h2>
+        </div>
+
+        <div class="edit-profile-body">
+            <form method="POST" action="/edit-profile" enctype="multipart/form-data">
+                <div class="edit-profile-form">
+                    
+                    <!-- Avatar Upload Column -->
+                    <div class="avatar-upload-col">
+                        <div class="avatar-preview-container" id="avatar-preview-container">
+                            {% if profile_image %}
+                                <img id="avatar-preview-img" src="{{ profile_image }}" alt="Profile Picture" class="avatar-preview-img">
+                            {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="avatar-preview-svg">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <label for="profile_image_input" class="upload-input-label">
+                            📁 Upload Photo
+                        </label>
+                        <input type="file" id="profile_image_input" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                        <p style="font-size: 11px; color: #888; margin: 0;">Supports JPG, PNG (Max 1MB)</p>
+                    </div>
+
+                    <!-- Input Fields Column -->
+                    <div class="form-fields-col">
+                        <div class="form-row-2">
+                            <div class="form-control-group">
+                                <label for="first_name">First Name</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ first_name }}" required>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ last_name }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-control-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ email }}" required>
+                        </div>
+
+                        <div class="form-control-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" value="{{ phone }}" placeholder="e.g. +91 98765 43210">
+                        </div>
+
+                        <div class="form-control-group">
+                            <label for="address">Address</label>
+                            <textarea id="address" name="address" rows="3" placeholder="Enter your full address..." style="resize: vertical;">{{ address }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions-row">
+                    <a href="/user-dashboard" class="btn white" style="text-decoration: none;">Cancel</a>
+                    <button type="submit" class="btn yellow">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-column">
+            <h3>💰 Expense Tracker</h3>
+            <p>Your trusted destination to track your daily expenses, manage income, analyze spending, and secure your financial goals with ease.</p>
+        </div>
+        
+        <div class="footer-column">
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/add-expense">Add Expense</a></li>
+                <li><a href="/manage-expense">Manage Expense</a></li>
+                <li><a href="/expense-report">Expense Report</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-column footer-contact">
+            <h3>Contact Info</h3>
+            <p>📍 123 Finance Avenue, Tech Park, Chennai, Tamil Nadu - 600001</p>
+            <p>📞 +91 63839 52332</p>
+            <p>✉️ support@expensetracker.com</p>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        &copy; 2026 Expense Tracker. All rights reserved.
+    </div>
+</footer>
+
+<script>
+    function closeMessageModal() {
+        document.getElementById('messageModal').classList.remove('show');
+    }
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function() {
+            const container = document.getElementById('avatar-preview-container');
+            container.innerHTML = `<img id="avatar-preview-img" src="${reader.result}" alt="Profile Picture" class="avatar-preview-img">`;
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

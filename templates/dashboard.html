@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="messageModal" class="modal-overlay show">
+      <div class="custom-modal" style="padding: 25px;">
+        {% for category, message in messages %}
+          <p class="alert {{ category }}" style="margin-bottom: 0;">{{ message }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo" style="display: flex; align-items: center; gap: 5px;">
+        <img src="{{ url_for('static', filename='images/logo.png', v='10') }}" alt="Logo" style="height: 55px; width: 55px; object-fit: contain; margin-right: -16px; transform: translateY(-6px);">
+        <span>Expense Tracker</span>
+    </div>
+    <div class="nav-right-container">
+        <a href="/user-dashboard" class="mobile-user-link" aria-label="User Dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+        </a>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    <ul class="nav-links">
+        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li class="active">Dashboard</li>
+        <li><a href="/add-expense">Add Expense</a></li>
+        <li><a href="/manage-expense">Manage Expense</a></li>
+        <li><a href="/expense-report">Expense Report</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li class="nav-user-item">
+            <a href="/user-dashboard" class="user-nav-link" aria-label="User Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<!-- WELCOME -->
+<section class="welcome">
+    <h1>Welcome, {{ name }}!</h1>
+    <div class="note">Welcome to my Expense Tracker</div>
+</section>
+
+{% if budget_exceeded %}
+<div class="alert error blink-alert" style="margin: 0 auto 20px auto; width: 80%; max-width: 1000px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    <span><strong style="color: red; font-size: 18px;">Alert!</strong> You have exceeded your monthly budget of <strong>₹{{ budget }}</strong>. Current month expenses: <strong>₹{{ month_total }}</strong>.</span>
+</div>
+{% endif %}
+
+<!-- BUDGET SETUP FORM -->
+<section style="margin: 0 auto 30px auto; width: 80%; max-width: 1000px;">
+    <form action="/set-budget" method="POST" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+        <label for="budget" style="font-weight: bold; font-size: 16px;">Monthly Budget Limit:</label>
+        <div style="display: flex; gap: 5px; align-items: center; flex: 1; min-width: 200px; max-width: 300px;">
+            <span style="font-weight: bold; font-size: 18px;">₹</span>
+            <input type="number" id="budget" name="budget" placeholder="e.g. 10000" value="{{ budget if budget > 0 else '' }}" required style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; flex: 1; font-size: 16px;">
+        </div>
+        <button type="submit" style="background: var(--primary-color); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 6px; font-size: 16px; transition: 0.3s;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">Save Budget</button>
+    </form>
+</section>
+
+<!-- SUMMARY CARDS -->
+<section class="cards">
+    <div class="card">
+        <h3>Today</h3>
+        <p>₹ {{ today }}</p>
+    </div>
+    <div class="card">
+        <h3>Yesterday</h3>
+        <p>₹ {{ yesterday }}</p>
+    </div>
+    <div class="card">
+        <h3>Last 7 Days</h3>
+        <p>₹ {{ last7 }}</p>
+    </div>
+    <div class="card">
+        <h3>Last 30 Days</h3>       
+        <p>₹ {{ last30 }}</p>
+    </div>
+    <div class="card">
+        <h3>Current Year</h3>
+        <p>₹ {{ year }}</p>
+    </div>
+    <div class="card">
+        <h3>Total Expenses</h3>
+        <p>₹ {{ total }}</p>
+    </div>
+</section>
+
+<!-- CHART PLACEHOLDER -->
+<div class="charts-wrapper" style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; margin-top: 30px;">
+    <div style="flex: 1; min-width: 300px; max-width: 500px;">
+        <h3 class="chart-title">Expense Distribution</h3>
+        <div class="chart-container">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <div style="flex: 1; min-width: 300px; max-width: 500px;">
+        <h3 class="chart-title">Monthly Spending (Last 7 Months)</h3>
+        <div class="chart-container">
+            <canvas id="monthlyBarChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- SAVINGS GOALS SECTION -->
+<section class="goals-section">
+    <div class="goals-header">
+        <h3>🎯 My Savings Goals</h3>
+        <a href="#" class="add-goal-btn" id="openGoalModal">+ Add Goal</a>
+    </div>
+
+    <div class="goals-grid">
+        {% if not goals %}
+            <p style="color: #666; font-style: italic;">No goals set yet. Save for something special!</p>
+        {% endif %}
+        
+        {% for goal in goals %}
+        {% set progress = (current_savings / goal.target * 100) | round | int %}
+        {% if progress > 100 %}{% set progress = 100 %}{% endif %}
+        <div class="goal-card">
+            <a href="/delete-goal/{{ goal._id }}" class="delete-goal">&times;</a>
+            <div class="goal-info">
+                <span class="goal-name">{{ goal.name }}</span>
+                <span class="goal-target">Target: ₹{{ goal.target }}</span>
+            </div>
+            <div class="goal-progress-container">
+                <div class="goal-progress-bar" style="width: 0%" data-target-width="{{ progress }}%"></div>
+            </div>
+            <div class="goal-stats">
+                <span class="current-savings-text">Current Savings: ₹{{ current_savings }}</span>
+                <span class="goal-percentage">{{ progress }}%</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Goal Modal -->
+<div id="goalModal" class="modal-overlay">
+  <div class="custom-modal">
+    <h3>Add Savings Goal</h3>
+    <form action="/add-goal" method="POST" style="background: none; box-shadow: none; padding: 0;">
+        <label>Goal Name (e.g., New Phone)</label>
+        <input type="text" name="goal_name" required placeholder="What are you saving for?" style="margin-bottom: 15px;">
+        
+        <label>Target Amount (₹)</label>
+        <input type="number" name="goal_target" required placeholder="20000" style="margin-bottom: 20px;">
+        
+        <div class="modal-actions">
+          <button type="button" id="closeGoalModal" class="btn white">Cancel</button>
+          <button type="submit" class="btn yellow">Create Goal</button>
+        </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Goal Confirmation Modal -->
+<div id="deleteGoalModal" class="modal-overlay">
+  <div class="custom-modal">
+    <h3>Delete Goal</h3>
+    <p>Are you sure you want to delete this savings goal?</p>
+    <div class="modal-actions">
+      <button id="cancelDeleteGoal" class="btn white">Cancel</button>
+      <button id="confirmDeleteGoal" class="btn yellow">Delete</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Confetti CDN -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+    // Goal Modal Logic
+    const goalModal = document.getElementById('goalModal');
+    const openGoalBtn = document.getElementById('openGoalModal');
+    const closeGoalBtn = document.getElementById('closeGoalModal');
+
+    if (openGoalBtn) {
+        openGoalBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            goalModal.classList.add('show');
+        });
+    }
+
+    if (closeGoalBtn) {
+        closeGoalBtn.addEventListener('click', () => {
+            goalModal.classList.remove('show');
+        });
+    }
+
+    // Progress Bar Animation & Celebration
+    window.addEventListener('load', () => {
+        const bars = document.querySelectorAll('.goal-progress-bar');
+        let hasCelebrated = false;
+
+        bars.forEach(bar => {
+            const targetWidth = bar.getAttribute('data-target-width');
+            setTimeout(() => {
+                bar.style.width = targetWidth;
+                
+                // If goal is 100%, celebrate!
+                if (parseInt(targetWidth) >= 100 && !hasCelebrated) {
+                    hasCelebrated = true; // Celebrate once per page load
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#FFD700', '#FFA500', '#FF4500']
+                    });
+                }
+            }, 800);
+        });
+    });
+
+    // Pie Chart Logic
+    const labels = JSON.parse('{{ labels | tojson | safe }}');
+    const values = JSON.parse('{{ values | tojson | safe }}');
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    '#FFD700', '#FF5733', '#28A745', '#007BFF', '#FF8C00', 
+                    '#6F42C1', '#20C997', '#DC3545', '#17A2B8', '#343A40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    // Bar Chart Logic
+    const barLabels = JSON.parse('{{ bar_labels | tojson | safe }}');
+    const barValues = JSON.parse('{{ bar_values | tojson | safe }}');
+    const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
+
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [{
+                label: 'Spending (₹)',
+                data: barValues,
+                backgroundColor: [
+                    '#FFD700', // Gold
+                    '#FF5733', // Red
+                    '#28A745', // Green
+                    '#007BFF', // Blue
+                    '#FF8C00', // Orange
+                    '#6F42C1', // Purple
+                    '#20C997'  // Teal
+                ],
+                borderColor: 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1, // Force it to be a square like the pie chart
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // Hide legend for bar chart to match pie chart feel
+                }
+            }
+        }
+    });
+
+    // Delete Goal Modal Logic
+    const deleteGoalModal = document.getElementById('deleteGoalModal');
+    const deleteGoalBtns = document.querySelectorAll('.delete-goal');
+    const cancelDeleteGoal = document.getElementById('cancelDeleteGoal');
+    const confirmDeleteGoal = document.getElementById('confirmDeleteGoal');
+    let goalDeleteUrl = '';
+
+    deleteGoalBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            goalDeleteUrl = this.getAttribute('href');
+            deleteGoalModal.classList.add('show');
+        });
+    });
+
+    if (cancelDeleteGoal) {
+        cancelDeleteGoal.addEventListener('click', () => {
+            deleteGoalModal.classList.remove('show');
+        });
+    }
+
+    if (confirmDeleteGoal) {
+        confirmDeleteGoal.addEventListener('click', () => {
+            window.location.href = goalDeleteUrl;
+        });
+    }
+
+</script>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-column">
+            <h3>💰 Expense Tracker</h3>
+            <p>Your trusted destination to track your daily expenses, manage income, analyze spending, and secure your financial goals with ease.</p>
+            <div class="footer-social-icons">
+                <a href="https://facebook.com" target="_blank" class="footer-social-btn" aria-label="Facebook">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="https://twitter.com" target="_blank" class="footer-social-btn" aria-label="Twitter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                </a>
+                <a href="https://instagram.com" target="_blank" class="footer-social-btn" aria-label="Instagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a href="https://youtube.com" target="_blank" class="footer-social-btn" aria-label="YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 00-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.507a3.003 3.003 0 00-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 002.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.002 3.002 0 002.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer-column">
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/add-expense">Add Expense</a></li>
+                <li><a href="/manage-expense">Manage Expense</a></li>
+                <li><a href="/expense-report">Expense Report</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-column footer-contact">
+            <h3>Contact Info</h3>
+            <p>📍 123 Finance Avenue, Tech Park, Chennai, Tamil Nadu - 600001</p>
+            <p>📞 +91 63839 52332</p>
+            <p>✉️ support@expensetracker.com</p>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        &copy; 2026 Expense Tracker. All rights reserved.
+    </div>
+</footer>
+
+<div id="logoutModal" class="modal-overlay">
+  <div class="custom-modal">
+    <h3>Confirm Logout</h3>
+    <p>Are you sure you want to log out?</p>
+    <div class="modal-actions">
+      <button id="cancelLogout" class="btn white">Cancel</button>
+      <button id="confirmLogout" class="btn yellow">Logout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+    function closeMessageModal() {
+        document.getElementById('messageModal').classList.remove('show');
+    }
+</script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
