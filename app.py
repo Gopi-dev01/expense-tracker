@@ -222,13 +222,20 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "secret123")
 
 # MongoDB connection - clean up any accidental newlines or spaces from Render copy-pasting
-raw_mongo_uri = os.getenv("MONGO_URI")
-print("DEBUG MONGO_URI raw:", repr(raw_mongo_uri))
-if raw_mongo_uri:
-    raw_mongo_uri = raw_mongo_uri.strip().replace("\n", "").replace("\r", "").replace(" ", "")
-    print("DEBUG MONGO_URI sanitized:", repr(raw_mongo_uri))
-client = MongoClient(raw_mongo_uri)
-db = client.expense_tracker
+try:
+    raw_mongo_uri = os.getenv("MONGO_URI")
+    import sys
+    print("DEBUG MONGO_URI raw:", repr(raw_mongo_uri), file=sys.stderr, flush=True)
+    if raw_mongo_uri:
+        raw_mongo_uri = raw_mongo_uri.strip().replace("\n", "").replace("\r", "").replace(" ", "")
+        print("DEBUG MONGO_URI sanitized:", repr(raw_mongo_uri), file=sys.stderr, flush=True)
+    client = MongoClient(raw_mongo_uri)
+    db = client.expense_tracker
+except Exception as e:
+    import sys
+    print("CRITICAL ERROR during MongoDB connection initialization:", str(e), file=sys.stderr, flush=True)
+    print("MONGO_URI value read was:", repr(raw_mongo_uri), file=sys.stderr, flush=True)
+    raise e
 users_collection = db.users
 expenses_collection = db.expenses
 reset_tokens_collection = db.reset_tokens
