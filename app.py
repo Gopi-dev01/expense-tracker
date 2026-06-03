@@ -1032,15 +1032,45 @@ def edit_profile():
         if 'profile_image' in request.files:
             file = request.files['profile_image']
             if file and file.filename != '':
-                upload_folder = os.path.join(app.root_path, 'static', 'images', 'profiles')
-                os.makedirs(upload_folder, exist_ok=True)
-                
-                _, ext = os.path.splitext(file.filename)
-                filename = f"profile_{str(user['_id'])}{ext}"
-                file_path = os.path.join(upload_folder, filename)
-                file.save(file_path)
-                
-                profile_image_path = f"/static/images/profiles/{filename}"
+                try:
+                    from PIL import Image
+                    import io
+                    import base64
+                    
+                    # Open the file stream with Pillow
+                    img = Image.open(file.stream)
+                    
+                    # Convert transparent background/modes or set appropriate format
+                    if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+                        img_format = 'PNG'
+                        mimetype = 'image/png'
+                    else:
+                        img = img.convert('RGB')
+                        img_format = 'JPEG'
+                        mimetype = 'image/jpeg'
+                    
+                    # Limit maximum size to 300x300 preserving aspect ratio
+                    img.thumbnail((300, 300))
+                    
+                    # Save to memory buffer
+                    buffer = io.BytesIO()
+                    img.save(buffer, format=img_format, quality=85)
+                    img_bytes = buffer.getvalue()
+                    
+                    # Base64 encode the image
+                    base64_data = base64.b64encode(img_bytes).decode('utf-8')
+                    profile_image_path = f"data:{mimetype};base64,{base64_data}"
+                except Exception as e:
+                    print(f"Pillow conversion failed, falling back to raw Base64. Error: {e}")
+                    try:
+                        import base64
+                        file.seek(0)
+                        file_bytes = file.read()
+                        mimetype = file.mimetype or 'image/jpeg'
+                        base64_data = base64.b64encode(file_bytes).decode('utf-8')
+                        profile_image_path = f"data:{mimetype};base64,{base64_data}"
+                    except Exception as inner_e:
+                        print(f"Error encoding raw image: {inner_e}")
         
         full_name = f"{first_name} {last_name}"
         
