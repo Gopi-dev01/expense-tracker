@@ -246,7 +246,7 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
         password = request.form['password']
 
         # Find user in MongoDB
@@ -267,7 +267,7 @@ def login():
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
         
         # Check if user exists
         user = users_collection.find_one({"email": email})
@@ -490,7 +490,7 @@ def contact():
 def signup():
     if request.method == 'POST':
         name = request.form['name']
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
         password = request.form['password']
 
         # Check if user already exists
