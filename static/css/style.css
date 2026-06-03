@@ -863,11 +863,29 @@ th, td {
     }
 
     .auth-card, .logout-card {
-        width: 90%;
-        max-width: 365px;
-        padding: 35px 25px;
+        width: 92%;
+        max-width: 400px;
+        padding: 42px 28px;
         margin: 0 auto;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Fix budget form layout on mobile */
+    .budget-form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .budget-form div {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .budget-form button {
+        width: 100% !important;
+        margin-top: 5px;
     }
 
     .navbar {
