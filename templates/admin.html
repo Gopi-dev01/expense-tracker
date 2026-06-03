@@ -409,7 +409,7 @@
         .actions-cell {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Keep horizontally aligned on desktop */
         }
 
         .action-btn {
@@ -879,6 +879,9 @@
             }
             .table-responsive {
                 -webkit-overflow-scrolling: touch;
+            }
+            .actions-cell {
+                flex-wrap: wrap; /* Allow wrapping on small screens */
             }
         }
 
